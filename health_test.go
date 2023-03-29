@@ -132,7 +132,7 @@ func TestHealth_Measure(t *testing.T) {
 	require.NoError(t, err)
 
 	startedAt := time.Now()
-	result := h.Measure(context.Background())
+	result := h.Measure(context.Background(), "")
 	elapsed := time.Since(startedAt)
 
 	// both checks should run concurrently and should fail with timeout,
@@ -147,7 +147,7 @@ func TestHealth_Measure(t *testing.T) {
 
 	h, err = New(WithSystemInfo())
 	require.NoError(t, err)
-	result = h.Measure(context.Background())
+	result = h.Measure(context.Background(), "")
 
 	assert.NotNil(t, result.System)
 }

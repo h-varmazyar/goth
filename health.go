@@ -21,6 +21,7 @@ type Status string
 // Possible health statuses
 const (
 	StatusOK                 Status = "OK"
+	StatusNotFound           Status = "Service not found"
 	StatusPartiallyAvailable Status = "Partially Available"
 	StatusUnavailable        Status = "Unavailable"
 	StatusTimeout            Status = "Timeout during health check"
@@ -139,7 +140,9 @@ func (h *Health) Handler() http.Handler {
 
 // HandlerFunc is the HTTP handler function.
 func (h *Health) HandlerFunc(w http.ResponseWriter, r *http.Request) {
-	c := h.Measure(r.Context())
+	serviceName := r.URL.Query().Get("service_name")
+
+	c := h.Measure(r.Context(), serviceName)
 
 	w.Header().Set("Content-Type", "application/json")
 	data, err := json.Marshal(c)
@@ -158,7 +161,7 @@ func (h *Health) HandlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 // Measure runs all the registered health checks and returns summary status
-func (h *Health) Measure(ctx context.Context) Check {
+func (h *Health) Measure(ctx context.Context, serviceName string) Check {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -174,9 +177,28 @@ func (h *Health) Measure(ctx context.Context) Check {
 	status := StatusOK
 	failures := make(map[string]string)
 
+	if serviceName == "" {
+		failures, status = h.measureAllChecks(ctx, tracer)
+	} else {
+		failures, status = h.measureSingleChecks(ctx, tracer, serviceName)
+	}
+
+	span.SetAttributes(attribute.String("status", string(status)))
+
+	var systemMetrics *System
+	if h.systemInfoEnabled {
+		systemMetrics = newSystemMetrics()
+	}
+
+	return newCheck(h.component, status, systemMetrics, failures)
+}
+
+func (h *Health) measureAllChecks(ctx context.Context, tracer trace.Tracer) (map[string]string, Status) {
+	status := StatusOK
+	failures := make(map[string]string)
+
 	limiterCh := make(chan bool, h.maxConcurrent)
 	defer close(limiterCh)
-
 	var (
 		wg sync.WaitGroup
 		mu sync.Mutex
@@ -230,14 +252,60 @@ func (h *Health) Measure(ctx context.Context) Check {
 	}
 
 	wg.Wait()
-	span.SetAttributes(attribute.String("status", string(status)))
 
-	var systemMetrics *System
-	if h.systemInfoEnabled {
-		systemMetrics = newSystemMetrics()
+	return failures, status
+}
+
+func (h *Health) measureSingleChecks(ctx context.Context, tracer trace.Tracer, serviceName string) (map[string]string, Status) {
+	status := StatusOK
+	failures := make(map[string]string)
+
+	limiterCh := make(chan bool, h.maxConcurrent)
+	defer close(limiterCh)
+
+	limiterCh <- true
+
+	check, ok := h.checks[serviceName]
+	if !ok {
+		return nil, StatusNotFound
 	}
 
-	return newCheck(h.component, status, systemMetrics, failures)
+	ctx, span := tracer.Start(ctx, check.Name)
+	defer func() {
+		span.End()
+		<-limiterCh
+	}()
+
+	resCh := make(chan error)
+
+	go func() {
+		resCh <- check.Check(ctx)
+		defer close(resCh)
+	}()
+
+	timeout := time.NewTimer(check.Timeout)
+
+	select {
+	case <-timeout.C:
+
+		span.SetStatus(codes.Error, string(StatusTimeout))
+
+		failures[check.Name] = string(StatusTimeout)
+		status = getAvailability(status, check.SkipOnErr)
+	case res := <-resCh:
+		if !timeout.Stop() {
+			<-timeout.C
+		}
+
+		if res != nil {
+			span.RecordError(res)
+
+			failures[check.Name] = res.Error()
+			status = getAvailability(status, check.SkipOnErr)
+		}
+	}
+
+	return failures, status
 }
 
 func newCheck(c Component, s Status, system *System, failures map[string]string) Check {
