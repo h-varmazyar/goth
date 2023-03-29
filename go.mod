@@ -1,4 +1,4 @@
-module github.com/hvarmazyar/goth
+module github.com/h-varmazyar/goth
 
 go 1.18
 

@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/hvarmazyar/goth"
+	"github.com/h-varmazyar/goth"
 
 	"net/http"
 	"time"
 
-	healthHttp "github.com/hvarmazyar/goth/checks/http"
-	healthMySql "github.com/hvarmazyar/goth/checks/mysql"
-	healthPg "github.com/hvarmazyar/goth/checks/postgres"
+	healthHttp "github.com/h-varmazyar/goth/checks/http"
+	healthMySql "github.com/h-varmazyar/goth/checks/mysql"
+	healthPg "github.com/h-varmazyar/goth/checks/postgres"
 )
 
 func main() {

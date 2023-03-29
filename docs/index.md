@@ -30,8 +30,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hvarmazyar/goth"
-	healthMysql "github.com/hvarmazyar/goth/checks/mysql"
+	"github.com/h-varmazyar/goth"
+	healthMysql "github.com/h-varmazyar/goth/checks/mysql"
 )
 
 func main() {
@@ -77,8 +77,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/hvarmazyar/goth"
-	healthMysql "github.com/hvarmazyar/goth/checks/mysql"
+	"github.com/h-varmazyar/goth"
+	healthMysql "github.com/h-varmazyar/goth/checks/mysql"
 )
 
 func main() {
