@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	goth "github.com/hvarmazyar/goth/health-go"
+	"github.com/hvarmazyar/goth"
 
 	"net/http"
 	"time"

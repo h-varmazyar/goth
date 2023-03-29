@@ -1,4 +1,4 @@
-package health
+package goth
 
 import (
 	"context"

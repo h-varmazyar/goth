@@ -1,4 +1,4 @@
-# Health-Go
+# Goth
 
 ## Functionality
 
@@ -30,20 +30,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hellofresh/health-go/v5"
-	healthMysql "github.com/hellofresh/health-go/v5/checks/mysql"
+	"github.com/hvarmazyar/goth"
+	healthMysql "github.com/hvarmazyar/goth/checks/mysql"
 )
 
 func main() {
 	// add some checks on instance creation
-	h, _ := health.New(health.WithChecks(health.Config{
+	h, _ := goth.New(goth.WithChecks(goth.Config{
 		Name:      "rabbitmq",
 		Timeout:   time.Second * 5,
 		SkipOnErr: true,
 		Check: func(ctx context.Context) error {
 			// rabbitmq health check implementation goes here
 			return nil
-		}}, health.Config{
+		}}, goth.Config{
 		Name: "mongodb",
 		Check: func(ctx context.Context) error {
 			// mongo_db health check implementation goes here
@@ -53,7 +53,7 @@ func main() {
 	))
 
 	// and then add some more if needed
-	h.Register(health.Config{
+	h.Register(goth.Config{
 		Name:      "mysql",
 		Timeout:   time.Second * 2,
 		SkipOnErr: false,
@@ -77,20 +77,20 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/hellofresh/health-go/v5"
-	healthMysql "github.com/hellofresh/health-go/v5/checks/mysql"
+	"github.com/hvarmazyar/goth"
+	healthMysql "github.com/hvarmazyar/goth/checks/mysql"
 )
 
 func main() {
 	// add some checks on instance creation
-	h, _ := health.New(health.WithChecks(health.Config{
+	h, _ := goth.New(goth.WithChecks(goth.Config{
 		Name:      "rabbitmq",
 		Timeout:   time.Second * 5,
 		SkipOnErr: true,
 		Check: func(ctx context.Context) error {
 			// rabbitmq health check implementation goes here
 			return nil
-		}}, health.Config{
+		}}, goth.Config{
 		Name: "mongodb",
 		Check: func(ctx context.Context) error {
 			// mongo_db health check implementation goes here
@@ -100,7 +100,7 @@ func main() {
 	))
 
 	// and then add some more if needed
-	h.Register(health.Config{
+	h.Register(goth.Config{
 		Name:      "mysql",
 		Timeout:   time.Second * 2,
 		SkipOnErr: false,
@@ -115,7 +115,7 @@ func main() {
 }
 ```
 
-For more examples please check [here](https://github.com/hellofresh/health-go/blob/master/_examples/server.go)
+For more examples please check [here](https://github.com/h-varmazyar/goth/blob/main/_examples/server.go)
 
 ## API Documentation
 

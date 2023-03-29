@@ -3,9 +3,9 @@ name: Testing
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   release:
     types:
       - created
@@ -54,7 +54,7 @@ jobs:
 
       - run: task test
 
-  tets-summary:
+  test-summary:
     name: Test
     needs: test
     runs-on: ubuntu-latest

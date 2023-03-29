@@ -1,4 +1,4 @@
-module github.com/hellofresh/health-go/v5
+module github.com/hvarmazyar/goth
 
 go 1.18
 
