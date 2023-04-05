@@ -32,23 +32,23 @@ import (
 
 	"github.com/h-varmazyar/goth"
 	healthMysql "github.com/h-varmazyar/goth/checks/mysql"
+    healthRabbit "github.com/h-varmazyar/goth/checks/rabbitmq"
 )
 
 func main() {
 	// add some checks on instance creation
 	h, _ := goth.New(goth.WithChecks(goth.Config{
-		Name:      "rabbitmq",
+		Name:      "mongodb",
 		Timeout:   time.Second * 5,
 		SkipOnErr: true,
 		Check: func(ctx context.Context) error {
 			// rabbitmq health check implementation goes here
 			return nil
 		}}, goth.Config{
-		Name: "mongodb",
-		Check: func(ctx context.Context) error {
-			// mongo_db health check implementation goes here
-			return nil
-		},
+		Name: "rabbitmq",
+		Check: healthRabbit.New(healthRabbit.Config{
+            DSN: "amqp://user:password@host:port",
+        }),
 	},
 	))
 
@@ -79,6 +79,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/h-varmazyar/goth"
 	healthMysql "github.com/h-varmazyar/goth/checks/mysql"
+    healthRabbit "github.com/h-varmazyar/goth/checks/rabbitmq"
 )
 
 func main() {
@@ -87,10 +88,9 @@ func main() {
 		Name:      "rabbitmq",
 		Timeout:   time.Second * 5,
 		SkipOnErr: true,
-		Check: func(ctx context.Context) error {
-			// rabbitmq health check implementation goes here
-			return nil
-		}}, goth.Config{
+		Check: healthRabbit.New(healthRabbit.Config{
+          DSN: "amqp://user:password@host:port",
+        })}, goth.Config{
 		Name: "mongodb",
 		Check: func(ctx context.Context) error {
 			// mongo_db health check implementation goes here
@@ -126,8 +126,10 @@ Get the health of the application.
 - Method: `GET`
 - Endpoint: `/status`
 - Request:
+- Params: 
+    - service_name: the name of registered service for getting status of certain service. this param is optional. if you want to get all services status ignore this parameter.
 ```
-curl localhost:3000/status
+curl localhost:3000/status?service_name={name_of_registerd_check}
 ```
 - Response:
 
@@ -146,7 +148,7 @@ HTTP/1.1 200 OK
 }
 ```
 
-HTTP/1.1 200 OK
+HTTP custom code 509
 ```json
 {
   "status": "Partially Available",

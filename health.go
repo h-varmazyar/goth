@@ -152,9 +152,20 @@ func (h *Health) HandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	code := http.StatusOK
-	if c.Status == StatusUnavailable {
+	var code int
+	switch c.Status {
+	case StatusOK:
+		code = http.StatusOK
+	case StatusNotFound:
+		code = http.StatusNotImplemented
+	case StatusPartiallyAvailable:
+		code = 509 // custom http code for partially unavailable
+	case StatusUnavailable:
 		code = http.StatusServiceUnavailable
+	case StatusTimeout:
+		code = http.StatusGatewayTimeout
+	default:
+		code = http.StatusInternalServerError
 	}
 	w.WriteHeader(code)
 	w.Write(data)
